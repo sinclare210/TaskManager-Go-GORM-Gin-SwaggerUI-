@@ -50,6 +50,8 @@ func main() {
 		task := api.Group("/task")
 		{
 			task.POST("/create", middleware.Authenticated, routes.CreateTask)
+			task.GET("/alltask", middleware.Authenticated, routes.GetAllTask)
+			task.GET("/specifictask", middleware.Authenticated, routes.GetTask)
 		}
 	}
 	server.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

@@ -118,6 +118,31 @@ paths:
       summary: Register User For the Task Manager
       tags:
       - Auth
+  /task/alltask:
+    get:
+      description: Returns a list of tasks belonging to the logged-in user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Task'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/routes.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/routes.Response'
+      security:
+      - TokenAuth: []
+      summary: Get all tasks for the authenticated user
+      tags:
+      - tasks
   /task/create:
     post:
       consumes:
@@ -154,6 +179,44 @@ paths:
       summary: Create a new task
       tags:
       - tasks
+  /task/specifictask:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all tasks for the logged-in user. You can filter by status
+        using a query parameter.
+      parameters:
+      - description: Task status filter (e.g. 'pending', 'completed')
+        in: query
+        name: status
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Task'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/routes.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/routes.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/routes.Response'
+      security:
+      - TokenAuth: []
+      summary: Get tasks for the authenticated user
+      tags:
+      - Tasks
 securityDefinitions:
   TokenAuth:
     in: header

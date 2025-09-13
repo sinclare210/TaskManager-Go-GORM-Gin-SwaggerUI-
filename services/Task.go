@@ -21,3 +21,19 @@ func CreateTask(UserID uint, Title, Status string, DueDate *time.Time) error {
 	}
 	return nil
 }
+
+func GetTask(userId uint) ([]model.Task, error) {
+	var task []model.Task
+
+	result := db.DB.Where("user_id", userId).Find(&task)
+
+	return task, result.Error
+}
+
+func GetTaskBasedOnStat(userId uint, status string) ([]model.Task, error) {
+	var tasks []model.Task
+
+	result := db.DB.Where("user_id = ? AND status = ?", userId, status).Find(&tasks)
+
+	return tasks, result.Error
+}
