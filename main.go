@@ -3,6 +3,7 @@ package main
 import (
 	"TaskManager-Go-GORM-Gin-SwaggerUI/db"
 	_ "TaskManager-Go-GORM-Gin-SwaggerUI/docs"
+	"TaskManager-Go-GORM-Gin-SwaggerUI/middleware"
 	"TaskManager-Go-GORM-Gin-SwaggerUI/routes"
 
 	"github.com/gin-gonic/gin"
@@ -44,6 +45,11 @@ func main() {
 		{
 			user.POST("/register", routes.RegisterUser)
 			user.POST("/login", routes.LoginUser)
+		}
+
+		task := api.Group("/task")
+		{
+			task.POST("/create", middleware.Authenticated, routes.CreateTask)
 		}
 	}
 	server.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

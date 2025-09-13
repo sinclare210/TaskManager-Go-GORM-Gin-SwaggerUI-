@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"time"
 
@@ -14,7 +15,7 @@ func GenerateToken(Email string, Id uint) (string, error) {
 		return "", errors.New("SECRET_KEY not set in environment")
 	}
 	ParsedToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"Emali": Email,
+		"Email": Email,
 		"Id":    Id,
 		"exp":   time.Now().Add(time.Hour * 2).Unix(),
 	})
@@ -22,10 +23,10 @@ func GenerateToken(Email string, Id uint) (string, error) {
 	return ParsedToken.SignedString([]byte(secret))
 }
 
-func VerifyToken(token string) (any, error) {
+func VerifyToken(token string) (string, uint, error) {
 	secret := os.Getenv("SECRET_KEY")
 	if secret == "" {
-		return nil, errors.New("SECRET_KEY not set in environment")
+		return "", 0, errors.New("SECRET_KEY not set in environment")
 	}
 	Parsedtoken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 		_, ok := token.Method.(*jwt.SigningMethodHMAC)
@@ -35,18 +36,33 @@ func VerifyToken(token string) (any, error) {
 		return []byte(secret), nil
 	})
 	if err != nil {
-		return nil, err
+		return "", 0, err
 	}
 
 	if !Parsedtoken.Valid {
-		return nil, errors.New("invalid token")
+		return "", 0, errors.New("invalid token")
 	}
 
 	claims, ok := Parsedtoken.Claims.(jwt.MapClaims)
 	if !ok {
-		return nil, err
+		return "", 0, err
 	}
 
-	return claims, nil
+	emailVal, ok := claims["Email"]
+	if !ok {
+		return "", 0, fmt.Errorf("email claim missing")
+	}
+
+	email, ok := emailVal.(string)
+	if !ok {
+		return "", 0, fmt.Errorf("email claim is not a string")
+	}
+
+	Id := uint(claims["Id"].(float64))
+	if Id == 0 {
+		return "", 0, err
+	}
+
+	return email, Id, nil
 
 }

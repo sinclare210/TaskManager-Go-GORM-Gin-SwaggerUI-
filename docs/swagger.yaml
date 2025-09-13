@@ -1,10 +1,34 @@
 basePath: /api/v1
 definitions:
+  model.Task:
+    properties:
+      created_at:
+        type: string
+      due_date:
+        type: string
+      id:
+        type: integer
+      status:
+        type: string
+      title:
+        type: string
+      user_id:
+        type: integer
+    type: object
   routes.LoginUserF:
     properties:
       email:
         type: string
       password:
+        type: string
+    type: object
+  routes.NewTask:
+    properties:
+      due_date:
+        type: string
+      status:
+        type: string
+      title:
         type: string
     type: object
   routes.RegisterUserF:
@@ -94,6 +118,42 @@ paths:
       summary: Register User For the Task Manager
       tags:
       - Auth
+  /task/create:
+    post:
+      consumes:
+      - application/json
+      description: Allows an authenticated user to create a task
+      parameters:
+      - description: Task to create
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/routes.NewTask'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.Task'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/routes.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/routes.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/routes.Response'
+      security:
+      - TokenAuth: []
+      summary: Create a new task
+      tags:
+      - tasks
 securityDefinitions:
   TokenAuth:
     in: header
