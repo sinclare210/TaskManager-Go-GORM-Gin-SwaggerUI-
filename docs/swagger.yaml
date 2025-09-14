@@ -42,7 +42,7 @@ definitions:
     type: object
   routes.Response:
     properties:
-      errors:
+      Message:
         type: string
     type: object
 externalDocs:
@@ -118,6 +118,51 @@ paths:
       summary: Register User For the Task Manager
       tags:
       - Auth
+  /task/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Update an existing task owned by the authenticated user
+      parameters:
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update Task
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/routes.NewTask'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/routes.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/routes.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/routes.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/routes.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/routes.Response'
+      security:
+      - TokenAuth: []
+      summary: Update a task
+      tags:
+      - Tasks
   /task/alltask:
     get:
       description: Returns a list of tasks belonging to the logged-in user
@@ -142,7 +187,7 @@ paths:
       - TokenAuth: []
       summary: Get all tasks for the authenticated user
       tags:
-      - tasks
+      - Tasks
   /task/create:
     post:
       consumes:
@@ -178,7 +223,51 @@ paths:
       - TokenAuth: []
       summary: Create a new task
       tags:
-      - tasks
+      - Tasks
+  /task/delete:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a task by its ID, only if it belongs to the authenticated
+        user
+      parameters:
+      - description: Task ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/routes.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/routes.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/routes.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/routes.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/routes.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/routes.Response'
+      security:
+      - TokenAuth: []
+      summary: Delete a task
+      tags:
+      - Tasks
   /task/specifictask:
     get:
       consumes:
@@ -186,7 +275,7 @@ paths:
       description: Retrieves all tasks for the logged-in user. You can filter by status
         using a query parameter.
       parameters:
-      - description: Task status filter (e.g. 'pending', 'completed')
+      - description: Task status filter (e.g. 'pending', 'complete')
         in: query
         name: status
         required: true

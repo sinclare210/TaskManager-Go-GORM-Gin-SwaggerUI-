@@ -47,11 +47,13 @@ func main() {
 			user.POST("/login", routes.LoginUser)
 		}
 
-		task := api.Group("/task")
+		task := api.Group("/task", middleware.Authenticated)
 		{
-			task.POST("/create", middleware.Authenticated, routes.CreateTask)
-			task.GET("/alltask", middleware.Authenticated, routes.GetAllTask)
-			task.GET("/specifictask", middleware.Authenticated, routes.GetTask)
+			task.POST("/create", routes.CreateTask)
+			task.GET("/alltask", routes.GetAllTask)
+			task.GET("/specifictask", routes.GetTask)
+			task.DELETE("/delete", routes.DeleteTask)
+			task.PUT("/:id",routes.UpdateTask)
 		}
 	}
 	server.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

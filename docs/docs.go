@@ -123,7 +123,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "tasks"
+                    "Tasks"
                 ],
                 "summary": "Get all tasks for the authenticated user",
                 "responses": {
@@ -166,7 +166,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "tasks"
+                    "Tasks"
                 ],
                 "summary": "Create a new task",
                 "parameters": [
@@ -208,6 +208,73 @@ const docTemplate = `{
                 }
             }
         },
+        "/task/delete": {
+            "delete": {
+                "security": [
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "description": "Deletes a task by its ID, only if it belongs to the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Delete a task",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Task ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/routes.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/routes.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/routes.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/routes.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/routes.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/routes.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/task/specifictask": {
             "get": {
                 "security": [
@@ -229,7 +296,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Task status filter (e.g. 'pending', 'completed')",
+                        "description": "Task status filter (e.g. 'pending', 'complete')",
                         "name": "status",
                         "in": "query",
                         "required": true
@@ -253,6 +320,76 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/routes.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/routes.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/task/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "description": "Update an existing task owned by the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Update a task",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Task ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update Task",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routes.NewTask"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/routes.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/routes.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/routes.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/routes.Response"
                         }
@@ -333,7 +470,7 @@ const docTemplate = `{
         "routes.Response": {
             "type": "object",
             "properties": {
-                "errors": {
+                "Message": {
                     "type": "string"
                 }
             }

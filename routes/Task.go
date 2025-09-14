@@ -2,10 +2,13 @@ package routes
 
 import (
 	"TaskManager-Go-GORM-Gin-SwaggerUI/services"
+	"errors"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type NewTask struct {
@@ -17,7 +20,7 @@ type NewTask struct {
 // CreateTask godoc
 // @Summary      Create a new task
 // @Description  Allows an authenticated user to create a task
-// @Tags         tasks
+// @Tags         Tasks
 // @Accept       json
 // @Produce      json
 // @Param  request body  NewTask  true  "Task to create"
@@ -59,7 +62,7 @@ func CreateTask(context *gin.Context) {
 // GetTask godoc
 // @Summary      Get all tasks for the authenticated user
 // @Description  Returns a list of tasks belonging to the logged-in user
-// @Tags         tasks
+// @Tags         Tasks
 // @Produce      json
 // @Success      200  {array}   model.Task
 // @Failure      401  {object}  Response
@@ -94,7 +97,7 @@ func GetAllTask(context *gin.Context) {
 // @Tags         Tasks
 // @Accept       json
 // @Produce      json
-// @Param        status   query     string  True "Task status filter (e.g. 'pending', 'completed')"
+// @Param        status   query     string  True "Task status filter (e.g. 'pending', 'complete')"
 // @Success      200      {array} model.Task
 // @Failure      400      {object}  Response
 // @Failure      401      {object}  Response
@@ -126,4 +129,117 @@ func GetTask(context *gin.Context) {
 		"message": "Tasks retrieved successfully",
 		"tasks":   tasks,
 	})
+}
+
+// DeleteTask godoc
+// @Summary      Delete a task
+// @Description  Deletes a task by its ID, only if it belongs to the authenticated user
+// @Tags         Tasks
+// @Accept       json
+// @Produce      json
+// @Param        id   query     int  true  "Task ID"
+// @Success      200  {object}  Response
+// @Failure      400  {object}  Response
+// @Failure      401  {object}  Response
+// @Failure      403  {object}  Response
+// @Failure      404  {object}  Response
+// @Failure      500  {object}  Response
+// @Security     TokenAuth
+// @Router       /task/delete [delete]
+func DeleteTask(context *gin.Context) {
+
+	Id, err := strconv.ParseUint(context.Query("id"), 10, 64)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, Response{
+			Message: "Invalid task ID",
+		})
+		return
+	}
+
+	idVal, exists := context.Get("Id")
+	if !exists {
+		context.AbortWithStatusJSON(http.StatusUnauthorized, Response{
+			Message: "Unauthorized: user ID not found",
+		})
+		return
+	}
+	userID := idVal.(uint)
+
+	task, err := services.GetTaskById(uint(Id))
+	if err != nil {
+		context.JSON(http.StatusNotFound, Response{
+			Message: "Task not found",
+		})
+		return
+	}
+
+	if task.UserID != userID {
+		context.JSON(http.StatusForbidden, Response{
+			Message: "You are not allowed to delete this task",
+		})
+		return
+	}
+
+	if err := services.DeleteTask(uint(Id)); err != nil {
+		context.JSON(http.StatusInternalServerError, Response{
+			Message: "Failed to delete task",
+		})
+		return
+	}
+
+	context.JSON(http.StatusOK, Response{
+		Message: "Task deleted successfully",
+	})
+}
+
+
+// UpdateTask godoc
+// @Summary Update a task
+// @Description Update an existing task owned by the authenticated user
+// @Tags Tasks
+// @Accept  json
+// @Produce  json
+// @Param id path int true "Task ID"
+// @Param request body NewTask true "Update Task"
+// @Success 200 {object} Response 
+// @Failure 400 {object} Response 
+// @Failure 401 {object} Response 
+// @Failure 404 {object} Response 
+// @Failure 500 {object} Response 
+// @Security TokenAuth
+// @Router /task/{id} [put]
+func UpdateTask(context *gin.Context) {
+	
+	taskID, err := strconv.ParseUint(context.Param("id"), 10, 64)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, Response{Message: "Invalid task ID"})
+		return
+	}
+
+	idVal, exists := context.Get("Id")
+	if !exists {
+		context.AbortWithStatusJSON(http.StatusUnauthorized, Response{Message: "Unauthorized: user ID not found"})
+		return
+	}
+	userID := idVal.(uint)
+
+	
+	var req NewTask
+	if err := context.ShouldBindJSON(&req); err != nil {
+		context.JSON(http.StatusBadRequest, Response{Message: "Invalid request body"})
+		return
+	}
+
+	
+	err = services.UpdateTask(uint(taskID), userID, req.Title, req.Status, req.DueDate)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			context.JSON(http.StatusNotFound, Response{Message: "Task not found"})
+			return
+		}
+		context.JSON(http.StatusInternalServerError, Response{Message: "Failed to update task"})
+		return
+	}
+
+	context.JSON(http.StatusOK, Response{Message: "Task updated successfully"})
 }

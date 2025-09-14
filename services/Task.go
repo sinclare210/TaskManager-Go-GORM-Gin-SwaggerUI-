@@ -37,3 +37,33 @@ func GetTaskBasedOnStat(userId uint, status string) ([]model.Task, error) {
 
 	return tasks, result.Error
 }
+
+func GetTaskById(Id uint) (model.Task, error) {
+	var task model.Task
+	result := db.DB.Where("id", Id).First(&task)
+	return task, result.Error
+}
+
+func DeleteTask(Id uint) error {
+
+	result := db.DB.Where("id", Id).Delete(&model.Task{})
+	return result.Error
+}
+
+func UpdateTask(taskID uint, userID uint, title, status string, dueDate *time.Time) error {
+	var task model.Task
+
+
+	result := db.DB.Where("id = ? AND user_id = ?", taskID, userID).First(&task)
+	if result.Error != nil {
+		return result.Error
+	}
+
+
+	task.Title = title
+	task.Status = status
+	task.DueDate = dueDate
+
+	return db.DB.Save(&task).Error
+}
+

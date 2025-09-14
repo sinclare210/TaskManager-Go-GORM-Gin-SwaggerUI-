@@ -20,7 +20,7 @@ type LoginUserF struct {
 }
 
 type Response struct {
-	Message string `json:"errors"`
+	Message string `json:"Message"`
 }
 
 // Register User For the Task Manager
